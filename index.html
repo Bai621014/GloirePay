@@ -3,317 +3,527 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendstoc App v5 - Plateforme Intégrale de Live Commerce</title>
-    <!-- Chargement des SDK pour les fonctionnalités Médias et de Communication -->
-    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.18.0.js"></script>
+    <title>Vendstoc App</title>
+    <!-- FontAwesome pour des icônes modernes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0d0d12; color: #ffffff; margin: 0; padding: 15px; text-align: center; }
-        .container { max-width: 550px; margin: 0 auto; padding-bottom: 40px; }
-        h1 { color: #25D366; font-size: 28px; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px; }
-        .subtitle { color: #888; font-size: 13px; margin-top: 0; margin-bottom: 20px; }
-        
-        /* Onglets de Navigation Fluides */
-        .nav-tabs { display: flex; justify-content: space-around; margin: 15px 0; background: #181822; border-radius: 30px; padding: 6px; border: 1px solid #252532; }
-        .tab { padding: 12px 18px; color: #a0a0b0; cursor: pointer; border-radius: 25px; font-weight: bold; font-size: 14px; transition: 0.3s; width: 30%; }
-        .tab.active { background: #25D366; color: white; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3); }
-        
-        /* Panneaux d'affichage */
-        .panel { display: none; background: #12121a; padding: 20px; border-radius: 20px; border: 1px solid #222230; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: fadeIn 0.4s ease; }
-        .panel.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Interface Vidéo Live */
-        #video-container { width: 100%; height: 260px; background: #050508; border-radius: 15px; margin-bottom: 15px; position: relative; overflow: hidden; border: 2px solid #222; }
-        .live-indicator { position: absolute; top: 15px; left: 15px; background: #e63946; color: white; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; text-transform: uppercase; animation: pulse 1.5s infinite; display: none; }
-        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
-        
-        /* Boutons d'actions */
-        button { width: 100%; padding: 15px; font-size: 15px; font-weight: bold; border-radius: 30px; border: none; cursor: pointer; margin: 8px 0; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        button:active { transform: scale(0.98); }
-        .btn-live { background: #e63946; color: white; }
-        .btn-pay { background: #ffb703; color: #000; }
-        .btn-wa { background: #25D366; color: white; display: none; }
-        .btn-ia-off { background: #1c1c28; color: #ffb703; border: 1px dashed #ffb703; }
-        .btn-ia-on { background: #25D366; color: white; }
-        
-        /* Métriques et Traçabilité */
-        .meta-box { background: #1a1a26; padding: 15px; border-radius: 12px; margin: 12px 0; border-left: 4px solid #ffb703; }
-        .meta-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
-        .highlight { color: #ffb703; font-weight: bold; }
-        
-        /* Vitrine e-Commerce */
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
-        .product-card { background: #1a1a26; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #252535; }
-        .product-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
-        
+        :root {
+            --bg-principal: #121214;
+            --bg-carte: #1e1e24;
+            --vert-whatsapp: #25D366;
+            --rouge-action: #e63946;
+            --texte-blanc: #ffffff;
+            --texte-gris: #a0a0b0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-principal);
+            color: var(--texte-blanc);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: var(--vert-whatsapp);
+            margin: 5px 0;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            color: var(--texte-gris);
+            font-size: 13px;
+            margin: 5px 0;
+        }
+
+        /* Système d'onglets de navigation */
+        .navigation-tabs {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--bg-carte);
+            padding: 5px;
+            border-radius: 30px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--texte-gris);
+            padding: 12px 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background-color: var(--vert-whatsapp);
+            color: var(--bg-principal);
+        }
+
+        /* Sections applicatives */
+        .app-section {
+            display: none;
+            background-color: var(--bg-carte);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .app-section.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 0;
+            color: var(--vert-whatsapp);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         /* Formulaires */
-        input[type="text"], input[type="number"] { width: 92%; padding: 12px; margin-bottom: 10px; background: #161622; border: 1px solid #303045; color: #fff; border-radius: 8px; font-size: 14px; }
-        
-        /* Historique des logs système */
-        .log-status { font-size: 13px; color: #00ecff; background: rgba(0, 236, 255, 0.1); padding: 10px; border-radius: 8px; text-align: center; margin-top: 5px; font-family: monospace; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--texte-gris);
+            font-size: 13px;
+        }
+
+        input[type="text"], input[type="number"], file {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background-color: var(--bg-principal);
+            color: white;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: 2px dashed var(--texte-gris);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            color: var(--texte-gris);
+            background-color: var(--bg-principal);
+        }
+
+        /* Boutons */
+        .btn-principal {
+            width: 100%;
+            background-color: var(--vert-whatsapp);
+            color: var(--bg-principal);
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-principal:hover {
+            background-color: #1ebd54;
+        }
+
+        .btn-enregistrement {
+            background-color: var(--rouge-action);
+            color: white;
+            margin-top: 15px;
+        }
+
+        /* Grille Vitrine */
+        .grid-vitrine {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .product-card {
+            background-color: var(--bg-principal);
+            border-radius: 10px;
+            overflow: hidden;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #222;
+            position: relative;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #222;
+        }
+
+        /* Statuts et Calculs */
+        .status-box {
+            background-color: var(--bg-principal);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            border-left: 4px solid var(--vert-whatsapp);
+            margin: 15px 0;
+        }
+
+        .finances-box {
+            background-color: var(--bg-principal);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #333;
+        }
+
+        .finances-box p {
+            margin: 6px 0;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Caméra Live simulation */
+        .video-box {
+            width: 100%;
+            height: 220px;
+            background-color: #000;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--texte-gris);
+            font-size: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        .badge-live {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--rouge-action);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .loader-image {
+            position: absolute;
+            top: 40%;
+            left: 45%;
+            color: var(--vert-whatsapp);
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Vendstoc App 🚀</h1>
-        <p class="subtitle">Live Vidéo • Saisie Vocale • Facture Signée • Répondeur IA</p>
-
-        <!-- Onglets du Menu Principal -->
-        <div class="nav-tabs">
-            <div class="tab active" id="tab-live" onclick="switchTab('live')">📺 Direct Live</div>
-            <div class="tab" id="tab-catalogue" onclick="switchTab('catalogue')">🛍️ Vitrine</div>
-            <div class="tab" id="tab-appels" onclick="switchTab('appels')">📞 Clients</div>
+        <!-- En-tête -->
+        <div class="header">
+            <h1>VENDSTOC APP 🚀</h1>
+            <p>Live Vidéo • Saisie Vocale • Facture Signée • Répondeur IA</p>
         </div>
 
-        <!-- 📂 SECTION 1 : DIRECT LIVE & DICTÉE AUTOMATIQUE -->
-        <div id="panel-live" class="panel active">
-            <div id="video-container">
-                <div class="live-indicator" id="live-badge">🔴 LIVE DIRECT</div>
-                <div id="video-placeholder" style="position:absolute; top:45%; left:0; width:100%; text-align:center; color:#555565; font-size:14px;">[ Caméra prête pour la diffusion ]</div>
-            </div>
-            
-            <button class="btn-live" onclick="toggleLiveStream()">📺 Lancer le Live Vidéo & Micro Commerce</button>
-            <div class="log-status" id="status-vocal">Statut : Micro inactif. Lancez le live pour écouter.</div>
-            
-            <h3 style="margin-top: 20px; border-bottom: 1px solid #222; padding-bottom: 5px; color:#25D366;">🧾 Traçabilité de l'Achat en Cours</h3>
-            <div class="meta-box">
-                <div class="meta-row"><span>ID Transaction (Unique) :</span><span id="f-id" class="highlight">---</span></div>
-                <div class="meta-row"><span>Marchandise captée :</span><span id="f-art" style="color:#fff;">En attente de dictée...</span></div>
-                <div class="meta-row"><span>Prix Global Client :</span><span><span id="f-prix">0</span> FCFA</span></div>
-                <div class="meta-row"><span>Commission Prélevée (5%) :</span><span style="color:#e63946;"><span id="f-com">0</span> FCFA</span></div>
-                <div class="meta-row"><span>Reste Net Vendeur :</span><span style="color:#25D366; font-weight:bold;"><span id="f-net">0</span> FCFA</span></div>
-                <div class="meta-row"><span>Numéro Client WhatsApp :</span><span id="f-tel" class="highlight">---</span></div>
-            </div>
-
-            <!-- Boutons dynamiques déclenchés par les flux financiers -->
-            <button class="btn-pay" id="btn-valider-versement" style="display:none;" onclick="executerSignatureCommandant()">💰 Confirmer le Versement de la Somme</button>
-
-            <a id="lien-whatsapp" href="#" target="_blank" style="text-decoration: none;">
-                <button class="btn-wa">📩 Envoyer la Facture Signée par le Commandant</button>
-            </a>
+        <!-- Onglets Navigation -->
+        <div class="navigation-tabs">
+            <button class="tab-btn active" onclick="changerOnglet('live')"><i class="fa-solid fa-tv"></i> Direct Live</button>
+            <button class="tab-btn" onclick="changerOnglet('vitrine')"><i class="fa-solid fa-bag-shopping"></i> Vitrine</button>
+            <button class="tab-btn" onclick="changerOnglet('clients')"><i class="fa-solid fa-phone"></i> Clients</button>
         </div>
 
-        <!-- 📂 SECTION 2 : VITRINE & CATALOGUE PRODUITS -->
-        <div id="panel-catalogue" class="panel">
-            <h3 style="color:#25D366; margin-top:0;">Enregistrer une Marchandise</h3>
-            <p style="font-size:12px; color:#aaa; margin-top:-10px;">Prenez une photo en direct ou importez-la pour l'ajouter à la vitrine mondiale.</p>
-            
-            <input type="file" id="img-input" accept="image/*" style="margin-bottom: 15px; color:#ccc; font-size:12px;"><br>
-            <input type="text" id="p-nom" placeholder="Ex: Sac en cuir VIP, Carton de lait, etc.">
-            <input type="number" id="p-prix" placeholder="Prix de vente en FCFA">
-            <button style="background:#25D366; color:white; border-radius:10px;" onclick="sauvegarderArticle()">Enregistrer l'article</button>
+        <!-- SECTION 1 : DIRECT LIVE -->
+        <div id="section-live" class="app-section active">
+            <h2><i class="fa-solid fa-video"></i> Module de Vente Directe</h2>
+            <div class="video-box" id="live-video-box">
+                <span id="badge-live-status" class="badge-live">REC LIVE</span>
+                <span id="video-placeholder">[ Caméra prête pour la diffusion ]</span>
+                <video id="webcam" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none; border-radius:10px;"></video>
+            </div>
 
-            <h3 style="margin-top:25px; border-top:1px solid #222; padding-top:15px; color:#ffb703;">🛍️ Articles Disponibles</h3>
-            <div class="product-grid" id="vitrine-container">
-                <!-- Les articles publiés apparaîtront ici automatiquement -->
+            <button class="btn-principal btn-enregistrement" id="btn-live-vocal" onclick="basculerLiveVocal()">
+                <i class="fa-solid fa-microphone"></i> Lancer le Live Vidéo & Micro Commerce
+            </button>
+
+            <div class="status-box">
+                Statut : <span id="statut-vocal" style="color:var(--rouge-action);">Micro inactif. Lancez le live pour écouter.</span>
+            </div>
+
+            <h3>📝 Traçabilité de l'Achat en Cours</h3>
+            <p id="affichage-analyse" style="font-size:14px; color:var(--texte-gris); italic; min-height:30px;">
+                *Cliquez sur le bouton rouge et dictez (ex: "Sac à main 10000 francs pour le 66000000")*
+            </p>
+
+            <div class="finances-box">
+                <p><span>Prix Client :</span> <span id="fin-prix" style="font-weight:bold;">0 FCFA</span></p>
+                <p><span>Commission Prélevée (5%) :</span> <span id="fin-comm" style="color:var(--rouge-action);">0 FCFA</span></p>
+                <p style="border-top:1px solid #333; padding-top:8px; margin-top:8px; font-size:16px;">
+                    <strong>Reste pour le Vendeur :</strong> <strong id="fin-net" style="color:var(--vert-whatsapp);">0 FCFA</strong>
+                </p>
+            </div>
+
+            <button class="btn-principal" style="margin-top:15px;" onclick="genererFactureWhatsApp()">
+                <i class="fa-brands fa-whatsapp"></i> Envoyer la Facture sur WhatsApp
+            </button>
+        </div>
+
+        <!-- SECTION 2 : VITRINE MONDIALE -->
+        <div id="section-vitrine" class="app-section">
+            <h2><i class="fa-solid fa-store"></i> Enregistrer une Marchandise</h2>
+            <p style="color:var(--texte-gris); font-size:12px; margin-top:-10px; margin-bottom:15px;">Prenez une photo en direct ou importez-la pour l'ajouter à la vitrine mondiale.</p>
+
+            <div class="form-group">
+                <label for="img-input" class="custom-file-upload">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> <span id="file-label">Choisir ou Prendre une photo</span>
+                </label>
+                <input type="file" id="img-input" accept="image/*" onchange="mettreAJourNomFichier()">
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="p-nom" placeholder="Ex: Sac en cuir VIP, Chaussures, etc.">
+            </div>
+
+            <div class="form-group">
+                <input type="number" id="p-prix" placeholder="Prix de vente en FCFA">
+            </div>
+
+            <button class="btn-principal" onclick="sauvegarderArticle()">Enregistrer l'article</button>
+
+            <h3 style="margin-top:25px; color:#ffb703;"><i class="fa-solid fa-boxes-stacked"></i> Articles Disponibles</h3>
+            <div class="grid-vitrine" id="vitrine-container">
+                <!-- Les articles chargés s'afficheront ici -->
             </div>
         </div>
 
-        <!-- 📂 SECTION 3 : CLIENTS, APPELS DIRECTS & CHATBOT RÉPONDEUR AUTOMATIQUE -->
-        <div id="panel-appels" class="panel">
-            <h3 style="color:#25D366; margin-top:0;">📞 Appels Négociations Directs</h3>
-            <p style="font-size:13px; color:#aaa;">Permettez à vos grossistes ou clients de vous appeler directement en 1-à-1 pour inspecter la marchandise.</p>
-            <div style="display:flex; gap:10px;">
-                <button style="background: #1e73be; color: white;" onclick="passerAppel('Audio')">🎙️ Appel Audio</button>
-                <button style="background: #6a1b9a; color: white;" onclick="passerAppel('Vidéo')">📹 Appel Vidéo</button>
+        <!-- SECTION 3 : CLIENTS & IA -->
+        <div id="section-clients" class="app-section">
+            <h2><i class="fa-solid fa-users"></i> Suivi Relation Client</h2>
+            <p style="color:var(--texte-gris); font-size:14px;">Espace de stockage de la clientèle et configuration du répondeur automatique IA.</p>
+            <div class="status-box" style="border-left-color:#ffb703;">
+                <i class="fa-solid fa-circle-info"></i> Base de données synchronisée localement.
             </div>
-
-            <h3 style="margin-top:30px; border-top:1px solid #222; padding-top:15px; color:#ffb703;">🤖 Automatisation intelligente en cas d'absence</h3>
-            <p style="font-size:13px; color:#ccc;">Si vous êtes occupé, en livraison, ou absent, activez l'assistant. Le chatbot prendra le relais automatiquement sur WhatsApp pour proposer la vitrine et enregistrer la vente.</p>
-            
-            <button id="btn-chatbot" class="btn-ia-off" onclick="gérerActivationChatbot()">🔴 Activer le Répondeur Automatique Chatbot IA</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION DU FLUX MÉDIA AGORA (One-to-Many / One-to-One)
-        const AGORA_APP_ID = "VOTRE_APP_ID_AGORA"; 
-        let clientAgora, trackVideoCam, trackAudioMicro;
-        let streamingActif = false;
-        let systemeReconnaissance;
-        let chatbotActif = false;
+        // --- CONFIGURATION GENERALE ---
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dvoya2e3o/image/upload";
+        const UPLOAD_PRESET = "ml_default"; // Preset générique ouvert par défaut sur Cloudinary
         
-        // Stockage de la transaction courante (Traçabilité financière)
-        let transactionEnCours = null;
+        let reconnaissanceVocale;
+        let microActif = false;
+        let fluxVideo = null;
+        let catalogueArticles = JSON.parse(localStorage.getItem('vendstoc_articles')) || [];
 
-        // Gestion de la navigation entre onglets
-        function switchTab(nomOnglet) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        // --- NAVIGATION ENTRE ONGLETS ---
+        function changerOnglet(cible) {
+            document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             
-            document.getElementById('tab-' + nomOnglet).classList.add('active');
-            document.getElementById('panel-' + nomOnglet).classList.add('active');
-        }
+            document.getElementById(`section-${cible}`).classList.add('active');
+            event.currentTarget.classList.add('active');
 
-        // LOGIQUE DE RECONNAISSANCE VOCALE DE COMMERCE
-        const SpeechEngine = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechEngine) {
-            systemeReconnaissance = new SpeechEngine();
-            systemeReconnaissance.lang = 'fr-FR';
-            systemeReconnaissance.continuous = true;
-
-            systemeReconnaissance.onresult = function(event) {
-                const phraseTraduite = event.results[event.results.length - 1][0].transcript;
-                document.getElementById('status-vocal').innerText = "📢 Capté : " + phraseTraduite;
-
-                // Extraction des entités numériques : [0]=Prix, [1]=Numéro WhatsApp
-                const nombresTrouves = phraseTraduite.match(/\d+/g);
-                if (nombresTrouves && nombresTrouves.length >= 2) {
-                    const prixExtrait = parseInt(nombresTrouves[0]);
-                    const telephoneExtrait = nombresTrouves[1];
-                    const nomArticleExtrait = phraseTraduite.split(/[0-9]/)[0].trim() || "Marchandise Générale";
-
-                    // Calcul de la Commission Automatique Réformée (5%)
-                    const codeUniqueTransaction = "VND-TRAC-" + Math.floor(100000 + Math.random() * 900000);
-                    const commissionFrais = Math.round(prixExtrait * 0.05);
-                    const netReversé = prixExtrait - commissionFrais;
-
-                    // Hydratation de l'objet de traçabilité
-                    transactionEnCours = {
-                        id: codeUniqueTransaction,
-                        article: nomArticleExtrait,
-                        prix: prixExtrait,
-                        com: commissionFrais,
-                        net: netReversé,
-                        tel: telephoneExtrait,
-                        verifie: false
-                    };
-
-                    // Rendu Visuel des Métriques de Facturation
-                    document.getElementById('f-id').innerText = codeUniqueTransaction;
-                    document.getElementById('f-art').innerText = nomArticleExtrait;
-                    document.getElementById('f-prix').innerText = prixExtrait.toLocaleString();
-                    document.getElementById('f-com').innerText = commissionFrais.toLocaleString();
-                    document.getElementById('f-net').innerText = netReversé.toLocaleString();
-                    document.getElementById('f-tel').innerText = telephoneExtrait;
-
-                    // Changement d'état : Demande de validation du versement de l'argent
-                    document.getElementById('btn-valider-versement').style.display = 'block';
-                    document.querySelector('.btn-wa').style.display = 'none';
-                }
-            };
-        }
-
-        // TRAÇABILITÉ & SÉCURISATION : Signature du Commandant Vendstoc
-        function executerSignatureCommandant() {
-            if (!transactionEnCours) return;
-
-            transactionEnCours.verifie = true;
-            alert(`✅ Somme encaissée !\nL'empreinte financière est sécurisée. Génération du reçu officiel certifié par le Commandant...`);
-
-            // Construction textuelle de la facture infalsifiable
-            const corpsFactureWhatsApp = 
-                `*📄 VENDSTOC APP - REÇU OFFICIEL DE TRANSACTION*\n` +
-                `•————————————————————————————•\n` +
-                `🔑 *ID TRAÇABILITÉ :* \`${transactionEnCours.id}\`\n` +
-                `📦 *MARCHANDISE :* ${transactionEnCours.article}\n` +
-                `💰 *SOMME VERSÉE :* ${transactionEnCours.prix.toLocaleString()} FCFA\n` +
-                `⚡ *PRÉLÈVEMENT AUTO :* Accusé et Traité (5% COMPRIS)\n` +
-                `🟢 *STATUT FINANCIER :* SÉCURISÉ & VALIDÉ\n` +
-                `•————————————————————————————•\n` +
-                `✍️ *SIGNATURES ET SCELLÉS :*\n` +
-                `[🔒 DOCUMENT SIGNÉ NUMÉRIQUEMENT PAR LE COMMANDANT VENDSTOC]\n\n` +
-                `Prêt pour enlèvement ou expédition immédiate.`;
-
-            const urlLienFinal = `https://wa.me/${transactionEnCours.tel}?text=${encodeURIComponent(corpsFactureWhatsApp)}`;
-            
-            // Activation du bouton d'envoi automatique
-            const boutonEnvoiWhatsApp = document.getElementById('lien-whatsapp');
-            boutonEnvoiWhatsApp.href = urlLienFinal;
-            
-            document.querySelector('.btn-wa').style.display = 'block';
-            document.getElementById('btn-valider-versement').style.display = 'none';
-            document.getElementById('status-vocal').innerHTML = "💚 Facture légale signée par le Commandant prête pour WhatsApp !";
-        }
-
-        // ACTIVATION DU FLUX LIVE STREAMING (AGORA MULTIMÉDIA)
-        async function toggleLiveStream() {
-            if (!streamingActif) {
-                try {
-                    clientAgora = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
-                    await clientAgora.setClientRole("host");
-
-                    trackAudioMicro = await AgoraRTC.createMicrophoneAudioTrack();
-                    trackVideoCam = await AgoraRTC.createCameraVideoTrack();
-                    
-                    document.getElementById('video-placeholder').style.display = "none";
-                    trackVideoCam.play('video-container');
-                    document.getElementById('live-badge').style.display = "block";
-
-                    if (systemeReconnaissance) systemeReconnaissance.start();
-
-                    document.getElementById('status-vocal').innerText = "📡 Flux Live connecté + Écoute vocale active !";
-                    streamingActif = true;
-                } catch (erreur) {
-                    alert("Info : Pour activer la caméra réelle en production, hébergez ce fichier sous protocole HTTPS (ex: GitHub Pages). Le mode simulation reste actif.");
-                    document.getElementById('status-vocal').innerText = "📡 [Simulation] Écoute vocale des prix activée sans flux vidéo.";
-                    if (systemeReconnaissance) systemeReconnaissance.start();
-                    streamingActif = true;
-                }
-            } else {
-                if(trackVideoCam) trackVideoCam.stop();
-                if(trackAudioMicro) trackAudioMicro.stop();
-                if(systemeReconnaissance) systemeReconnaissance.stop();
-                
-                document.getElementById('video-container').innerHTML = `
-                    <div class="live-indicator" id="live-badge">🔴 LIVE DIRECT</div>
-                    <div id="video-placeholder" style="position:absolute; top:45%; left:0; width:100%; text-align:center; color:#555565; font-size:14px;">[ Caméra prête pour la diffusion ]</div>
-                `;
-                document.getElementById('live-badge').style.display = "none";
-                document.getElementById('status-vocal').innerText = "Statut : Micro éteint et diffusion coupée.";
-                streamingActif = false;
+            if(cible === 'vitrine') {
+                afficherCatalogue();
             }
         }
 
-        // FONCTIONNALITÉ DU CATALOGUE : SAUVEGARDE ET VITRINE IMAGES
-        function sauvegarderArticle() {
-            const nomArticle = document.getElementById('p-nom').value;
-            const prixArticle = document.getElementById('p-prix').value;
-            const selecteurFichier = document.getElementById('img-input');
+        function mettreAJourNomFichier() {
+            const input = document.getElementById('img-input');
+            const label = document.getElementById('file-label');
+            if(input.files && input.files[0]) {
+                label.innerText = input.files[0].name;
+            }
+        }
 
-            if (!nomArticle || !prixArticle) { alert("Veuillez assigner un nom et un prix à la marchandise."); return; }
+        // --- GESTION DU CATALOGUE ET UPLOAD CLOUDINARY ---
+        async function sauvegarderArticle() {
+            const nomInput = document.getElementById('p-nom');
+            const prixInput = document.getElementById('p-prix');
+            const fileInput = document.getElementById('img-input');
 
-            const structureCarte = document.createElement('div');
-            structureCarte.className = "product-card";
-            
-            let cheminImage = "https://via.placeholder.com/150?text=Pas+D'image";
-            if (selecteurFichier.files && selecteurFichier.files[0]) {
-                cheminImage = URL.createObjectURL(selecteurFichier.files[0]);
+            const nom = nomInput.value.trim();
+            const prix = prixInput.value.trim();
+
+            if (!nom || !prix) {
+                alert("Veuillez assigner un nom et un prix à la marchandise.");
+                return;
             }
 
-            structureCarte.innerHTML = `
-                <img src="${cheminImage}">
-                <h4 style="margin:5px 0; font-size:15px;">${nomArticle}</h4>
-                <p style="color:#25D366; font-weight:bold; margin:5px 0;">${parseInt(prixArticle).toLocaleString()} FCFA</p>
+            // Image de secours temporaire
+            let urlImageFinale = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"; 
+            
+            // Étape 1 : Ajout visuel d'une carte de chargement temporaire
+            const container = document.getElementById('vitrine-container');
+            const tempId = "temp-" + Date.now();
+            const carteTemp = document.createElement('div');
+            carteTemp.className = "product-card";
+            carteTemp.id = tempId;
+            carteTemp.innerHTML = `
+                <div class="loader-image"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='%23222'/></svg>" style="opacity:0.3;">
+                <h4 style="margin:5px 0; font-size:15px; color:var(--texte-gris);">${nom}</h4>
+                <p style="color:var(--vert-whatsapp); font-weight:bold; margin:5px 0;">${parseInt(prix).toLocaleString()} FCFA</p>
             `;
-            
-            document.getElementById('vitrine-container').appendChild(structureCarte);
+            container.appendChild(carteTemp);
 
-            // Remise à zéro des champs du formulaire
-            document.getElementById('p-nom').value = "";
-            document.getElementById('p-prix').value = "";
-        }
+            // Étape 2 : Traitement et téléversement Cloudinary si fichier présent
+            if (fileInput.files && fileInput.files[0]) {
+                const fichier = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', fichier);
+                formData.append('upload_preset', UPLOAD_PRESET);
 
-        // CENTRE D'APPELS DE NÉGOCIATION ONE-TO-ONE
-        function passerAppel(mode) {
-            alert(`📞 Canal de communication direct ouvert.\nAppel ${mode} sécurisé en cours vers la passerelle de négociation du client.`);
-        }
-
-        // CHATBOT RÉPONDEUR AUTOMATIQUE IA
-        function gérerActivationChatbot() {
-            chatbotActif = !chatbotActif;
-            const boutonChatbot = document.getElementById('btn-chatbot');
-            
-            if (chatbotActif) {
-                boutonChatbot.innerText = "🟢 Chatbot IA Actif (Mode Occupé Engagé)";
-                boutonChatbot.className = "btn-ia-on";
-                alert("Mode Occupé activé, Boss ! L'assistant automatisé intercepte désormais les demandes des clients sur WhatsApp pour afficher les prix et gérer les commandes en arrière-plan.");
-            } else {
-                boutonChatbot.innerText = "🔴 Activer le Répondeur Automatique Chatbot IA";
-                boutonChatbot.className = "btn-ia-off";
+                try {
+                    const reponse = await fetch(CLOUDINARY_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const resultatsCloud = await reponse.json();
+                    
+                    if (resultatsCloud.secure_url) {
+                        urlImageFinale = resultatsCloud.secure_url;
+                    } else {
+                        // En cas de preset non configuré, conversion en local pour ne pas bloquer l'image
+                        urlImageFinale = URL.createObjectURL(fichier);
+                    }
+                } catch (err) {
+                    console.error("Erreur serveur Cloudinary, bascule locale.", err);
+                    urlImageFinale = URL.createObjectURL(fichier);
+                }
             }
+
+            // Suppression du loader temporaire
+            document.getElementById(tempId).remove();
+
+            // Étape 3 : Enregistrement de la donnée propre
+            const nouvelArticle = {
+                id: Date.now(),
+                nom: nom,
+                prix: parseInt(prix),
+                image: urlImageFinale
+            };
+
+            catalogueArticles.push(nouvelArticle);
+            localStorage.setItem('vendstoc_articles', JSON.stringify(catalogueArticles));
+
+            // Réinitialisation du formulaire
+            nomInput.value = "";
+            prixInput.value = "";
+            fileInput.value = "";
+            document.getElementById('file-label').innerText = "Choisir ou Prendre une photo";
+
+            afficherCatalogue();
         }
-    </script>
-</body>
-</html>
+
+        function afficherCatalogue() {
+            const container = document.getElementById('vitrine-container');
+            container.innerHTML = "";
+
+            if(catalogueArticles.length === 0) {
+                container.innerHTML = `<p style="grid-column: span 2; color:var(--texte-gris); font-size:13px;">Aucun article dans la vitrine.</p>`;
+                return;
+            }
+
+            catalogueArticles.forEach(art => {
+                const carte = document.createElement('div');
+                carte.className = "product-card";
+                carte.innerHTML = `
+                    <img src="${art.image}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400';">
+                    <h4 style="margin:8px 0 4px 0; font-size:15px; text-transform:capitalize;">${art.nom}</h4>
+                    <p style="color:var(--vert-whatsapp); font-weight:bold; margin:0 0 5px 0;">${art.prix.toLocaleString()} FCFA</p>
+                `;
+                container.appendChild(carte);
+            });
+        }
+
+        // --- ENGINE RECONNAISSANCE VOCALE & STREAMING LIVE ---
+        async function basculerLiveVocal() {
+            const bouton = document.getElementById('btn-live-vocal');
+            const statutTxt = document.getElementById('statut-vocal');
+            const videoElement = document.getElementById('webcam');
+            const placeholder = document.getElementById('video-placeholder');
+            const badgeLive = document.getElementById('badge-live-status');
+
+            if (!microActif) {
+                // Allumer le flux vidéo caméra
+                try {
+                    fluxVideo = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+                    videoElement.srcObject = fluxVideo;
+                    videoElement.style.display = "block";
+                    placeholder.style.display = "none";
+                    badgeLive.style.display = "block";
+                } catch(e) {
+                    console.log("Caméra indisponible ou refusée.");
+                }
+
+                // Lancement de la reconnaissance de voix
+                const SpeechConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechConstructor) {
+                    alert("La reconnaissance vocale n'est pas supportée sur ce navigateur mobile (Privilégiez Chrome).");
+                    return;
+                }
+
+                reconnaissanceVocale = new SpeechConstructor();
+                reconnaissanceVocale.lang = 'fr-FR';
+                reconnaissanceVocale.continuous = true;
+                reconnaissanceVocale.interimResults = false;
+
+                reconnaissanceVocale.onresult = function(event) {
+                    const texteCompris = event.results[event.results.length - 1][0].transcript;
+                    document.getElementById('affichage-analyse').innerText = `"${texteCompris}"`;
+                    analyserTexteVente(texteCompris);
+                };
+
+                reconnaissanceVocale.onerror = function(err) {
+                    console.error("Erreur de capture micro: ", err.error);
+                };
+
+                reconnaissanceVocale.start();
+                microActif = true;
+                bouton.innerHTML = `<i class="fa-solid fa-video-slash"></i> Couper le Live & Micro Commerce`;
+                bouton.style.backgroundColor = var(--rouge-action);
+                st
