@@ -16,10 +16,11 @@
             --violet-affiliation: #9b5de5;
             --texte-blanc: #ffffff;
             --texte-gris: #a0a0b0;
+            --rouge-absent: #ef4444;
         }
 
         body {
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-principal);
             color: var(--texte-blanc);
             margin: 0;
@@ -52,6 +53,54 @@
             margin: 5px 0;
         }
 
+        /* Sélecteur de statut vendeur */
+        .status-bar {
+            background-color: var(--bg-carte);
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #2d2d35;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            background-color: var(--vert-whatsapp);
+        }
+
+        .status-dot.absent {
+            background-color: var(--rouge-absent);
+        }
+
+        .status-toggle-btn {
+            background-color: var(--bg-principal);
+            border: 1px solid #444;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .status-toggle-btn:hover {
+            border-color: var(--texte-gris);
+        }
+
         .navigation-tabs {
             display: flex;
             justify-content: space-between;
@@ -75,6 +124,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            transition: all 0.3s ease;
         }
 
         .tab-btn.active {
@@ -107,6 +157,11 @@
             color: white;
             box-sizing: border-box;
             font-size: 15px;
+            outline: none;
+        }
+        
+        input:focus, .search-bar:focus {
+            border-color: var(--vert-whatsapp);
         }
 
         .search-container {
@@ -132,6 +187,11 @@
             font-weight: bold;
             font-size: 15px;
             margin-bottom: 15px;
+            transition: background 0.2s ease;
+        }
+        
+        .custom-file-upload:hover {
+            background-color: #1c1c21;
         }
 
         .btn-principal {
@@ -145,6 +205,11 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
+            transition: transform 0.1s ease;
+        }
+        
+        .btn-principal:active {
+            transform: scale(0.98);
         }
 
         .grid-vitrine {
@@ -189,6 +254,11 @@
             justify-content: center;
             gap: 5px;
             color: white;
+            transition: opacity 0.2s ease;
+        }
+        
+        .btn-action:hover {
+            opacity: 0.9;
         }
 
         .btn-wa { background-color: var(--vert-whatsapp); color: #121214; }
@@ -200,6 +270,7 @@
         .qr-container {
             display: flex;
             justify-content: center;
+            align-items: center;
             background: white;
             padding: 5px;
             border-radius: 8px;
@@ -212,9 +283,16 @@
             background-color: var(--violet-affiliation);
             color: white;
             font-size: 11px;
-            padding: 3px 8px;
+            padding: 5px 8px;
             border-radius: 20px;
             font-weight: bold;
+            display: inline-block;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+            color: var(--texte-gris);
         }
     </style>
 </head>
@@ -224,6 +302,14 @@
         <div class="header">
             <h1>VENDSTOC APP 🚀</h1>
             <p>Live Vidéo • Saisie Vocale • Facture Signée</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-info">
+                <span id="vendeur-dot" class="status-dot"></span>
+                <span id="vendeur-status-text">Statut : En Ligne</span>
+            </div>
+            <button class="status-toggle-btn" onclick="basculerStatutVendeur()">Changer</button>
         </div>
 
         <div class="navigation-tabs">
@@ -282,7 +368,28 @@
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dvoya2e3o/image/upload";
         const UPLOAD_PRESET = "ml_default"; 
 
+        // URL de webhook de votre chatbot (ex: Make, n8n, Evolution API, etc.)
+        // À remplacer par votre webhook réel quand la branche Chatbot backend sera déployée
+        const CHATBOT_WEBHOOK_URL = "https://votre-serveur-chatbot.com/api/webhook";
+
         let tousLesArticles = [];
+        let estAbsent = false; // Stockage local du statut de présence (peut être lié à la BDD globale ultérieurement)
+
+        function basculerStatutVendeur() {
+            estAbsent = !estAbsent;
+            const dot = document.getElementById('vendeur-dot');
+            const txt = document.getElementById('vendeur-status-text');
+            
+            if(estAbsent) {
+                dot.className = "status-dot absent";
+                txt.innerText = "Statut : Absent (Chatbot Vente Activé 🤖)";
+            } else {
+                dot.className = "status-dot";
+                txt.innerText = "Statut : En Ligne";
+            }
+            // Recharge la vitrine pour ajuster à la volée le comportement des boutons de commande
+            filtrerArticles();
+        }
 
         function changerOnglet(cible) {
             document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
@@ -371,7 +478,7 @@
 
         async function chargerArticlesMondiaux() {
             const container = document.getElementById('vitrine-container');
-            container.innerHTML = "<p>Chargement des articles...</p>";
+            container.innerHTML = "<div class='loading-spinner'><i class='fa-solid fa-spinner fa-spin fa-2xl' style='color:var(--vert-whatsapp)'></i><p style='margin-top:10px;'>Chargement des articles...</p></div>";
 
             try {
                 const res = await fetch(`${SUPABASE_URL}/rest/v1/articles?order=created_at.desc`, {
@@ -379,11 +486,41 @@
                 });
                 if(res.ok) {
                     tousLesArticles = await res.json();
+                    
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const targetProduct = urlParams.get('product');
+                    if(targetProduct) {
+                        tousLesArticles.sort((a, b) => a.id == targetProduct ? -1 : b.id == targetProduct ? 1 : 0);
+                    }
+                    
                     filtrerArticles();
                 } else {
                     container.innerHTML = "<p>Erreur lors de la récupération des données.</p>";
                 }
             } catch (e) { container.innerHTML = "<p>Erreur de synchronisation.</p>"; }
+        }
+
+        // Gère l'action du bouton commander selon le statut de présence
+        function executerCommande(artId, artNom, artPrix, artWhatsapp, parentAffilie) {
+            let texteWA = `Bonjour, je souhaite commander l'article *${artNom}* au prix de ${artPrix} FCFA.`;
+            if(parentAffilie) {
+                texteWA += `\n\n_(Via affilié ID: ${parentAffilie})_`;
+            }
+
+            if (estAbsent) {
+                // Mode AUTO : On injecte un tag d'automatisation [BOT_AUTO] pour notifier le Chatbot à la réception
+                texteWA = `[BOT_AUTO] Commande en cours\nArticle ID: ${artId}\nNom: *${artNom}*\nPrix: ${artPrix} FCFA\nAffilié: ${parentAffilie || 'Aucun'}`;
+                
+                // En option, on envoie simultanément les métadonnées de la commande directement à l'API du Chatbot en arrière-plan
+                fetch(CHATBOT_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: "initier_vente_auto", produit_id: artId, nom: artNom, prix: artPrix, ref: parentAffilie })
+                }).catch(e => console.log("Webhook optionnel envoyé"));
+            }
+
+            const lienWhatsAppFinal = `https://api.whatsapp.com/send?phone=${artWhatsapp}&text=${encodeURIComponent(texteWA)}`;
+            window.open(lienWhatsAppFinal, '_blank');
         }
 
         function afficherVitrine(liste) {
@@ -404,68 +541,4 @@
                 
                 const commissionPct = art.commission_pct || 10;
                 const valeurCommission = (art.prix * commissionPct) / 100;
-
-                let texteWA = `Bonjour, je souhaite commander l'article *${art.nom}* au prix de ${art.prix} FCFA.`;
-                if(parentAffilie) {
-                    texteWA += `\n\n_(Via affilié ID: ${parentAffilie})_`;
-                }
-                const lienWA = `https://api.whatsapp.com/send?phone=${art.whatsapp}&text=${encodeURIComponent(texteWA)}`;
-                const lienMomo = `https://www.monetbil.com/pay/v2.1/votre_identifiant_monetbil?amount=${art.prix}`; 
-
-                carte.innerHTML = `
-                    <img src="${art.image || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400'}">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="margin:0; text-transform:capitalize;">${art.nom || 'Sans nom'}</h3>
-                        <span style="color:var(--vert-whatsapp); font-weight:bold; font-size:18px;">${(art.prix || 0).toLocaleString()} FCFA</span>
-                    </div>
-                    
-                    <div style="margin-top:5px;">
-                        <span class="badge-commission"><i class="fa-solid fa-money-bill-trend-up"></i> Gagner ${valeurCommission} FCFA sur ce produit</span>
-                    </div>
-
-                    <div style="text-align:center; font-size:11px; color:var(--texte-gris); margin-top:10px;">Fiche Produit QR :</div>
-                    <div class="qr-container" id="qr-${art.id}"></div>
-
-                    <div class="action-buttons">
-                        <button class="btn-action btn-wa" onclick="window.open('${lienWA}', '_blank')"><i class="fa-brands fa-whatsapp"></i> Commander</button>
-                        <button class="btn-action btn-momo" onclick="window.open('${lienMomo}', '_blank')"><i class="fa-solid fa-mobile-screen"></i> Mobile Money</button>
-                        ${art.crypto_wallet ? `<button class="btn-action btn-crypto" onclick="navigator.clipboard.writeText('${art.crypto_wallet}'); alert('Adresse Crypto copiée !')"><i class="fa-brands fa-ethereum"></i> Pay Crypto</button>` : ''}
-                        
-                        <button class="btn-action btn-aff" onclick="genererLienAffiliation(${art.id}, '${art.nom}')">
-                            <i class="fa-solid fa-link"></i> Devenir Affilié (Prendre ma commission)
-                        </button>
-
-                        <button class="btn-action btn-sh" onclick="partagerLienGlobal('${art.nom}', ${art.prix})"><i class="fa-solid fa-share-nodes"></i> Partager l'article</button>
-                    </div>
-                `;
-                container.appendChild(carte);
-
-                new QRCode(document.getElementById(`qr-${art.id}`), {
-                    text: `${window.location.origin}${window.location.pathname}?product=${art.id}`,
-                    width: 80,
-                    height: 80
-                });
-            });
-        }
-
-        function genererLienAffiliation(idArticle, nomArticle) {
-            const nomAffilie = prompt("Entre ton Prénom + Numéro WhatsApp (Ex: Moussa23566...) :");
-            if(!nomAffilie) return;
-
-            const cleanRef = nomAffilie.replace(/[^a-zA-Z0-9]/g, "");
-            const lienAffiliationUnique = `${window.location.origin}${window.location.pathname}?product=${idArticle}&ref=${cleanRef}`;
-
-            navigator.clipboard.writeText(lienAffiliationUnique);
-            alert(`🎉 Lien copié ! Partage-le. Si un client achète via ce lien, le vendeur saura que c'est grâce à toi (${cleanRef}).`);
-        }
-
-        function partagerLienGlobal(nom, prix) {
-            const txt = `🔥 PRODUIT DISPONIBLE 🔥\n\n📦 Article : ${nom.toUpperCase()}\n💰 Prix : ${prix.toLocaleString()} FCFA\n\nLien : ${window.location.href}`;
-            if(navigator.share) { navigator.share({ title: nom, text: txt }); } 
-            else { window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`, '_blank'); }
-        }
-
-        window.onload = function() { chargerArticlesMondiaux(); };
-    </script>
-</body>
-        </html>
+                const lienMomo = `https://www.mo
