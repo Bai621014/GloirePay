@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 from web3 import Web3
 from dotenv import load_dotenv
 
-# Chargement des variables d'environnement (Railway gère ça automatiquement)
+# Chargement des variables d'environnement
 load_dotenv()
 
 app = Flask(__name__)
@@ -15,26 +15,23 @@ app = Flask(__name__)
 RPC_URL = os.getenv("BLOCKCHAIN_RPC_URL", "https://rpc.ankr.com/eth_holesky")
 CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
 SERVER_PRIVATE_KEY = os.getenv("WALLET_PRIVATE_KEY")
-SERVER_ADDRESS = os.getenv("SERVER_WALLET_ADDRESS") # Ton adresse publique de serveur
+SERVER_ADDRESS = os.getenv("SERVER_WALLET_ADDRESS") 
 
-# Initialisation de la connexion Web3
 w3 = Web3(Web3.HTTPProvider(RPC_URL))
 
-# Vérification immédiate de la connexion de l'IA aux logs au démarrage
 if w3.is_connected():
-    print("🤖 [SYSTEM SYSTEM] Assistant connecté avec succès au nœud RPC Blockchain.")
+    print("🤖 [SYSTEM] Serveur connecté avec succès au nœud RPC Blockchain.")
 else:
-    print("⚠️ [SYSTEM WARNING] Échec initial de connexion au nœud RPC Blockchain. Vérifie tes variables.")
+    print("⚠️ [SYSTEM WARNING] Échec de connexion au nœud RPC Blockchain.")
 
 # ==========================================
-# 2. CONFIGURATION DE L'ABI DU CONTRAT
+# 2. CONFIGURATION DE L'ABI DU CONTRAT (MIS À JOUR)
 # ==========================================
-# Contient uniquement l'interface de ta fonction 'payerArticle' pour alléger la mémoire
+# Allégé et synchronisé : prend uniquement l'adresse du vendeur en paramètre
 ABI_JSON = """[
     {
         "inputs": [
-            {"internalType": "address payable", "name": "_vendeur", "type": "address"},
-            {"internalType": "uint256", "name": "_commissionPct", "type": "uint256"}
+            {"internalType": "address payable", "name": "_vendeur", "type": "address"}
         ],
         "name": "payerArticle",
         "outputs": [],
@@ -50,31 +47,39 @@ contract = w3.eth.contract(address=w3.to_checksum_address(CONTRACT_ADDRESS), abi
 # ==========================================
 @app.route('/webhook/monetbil', methods=['POST'])
 def webhook_mobile_money():
-    data = request.json  # Réception des données en arrière-plan envoyées par Monetbil
+    # Monetbil envoie les notifications au format formulaire standard (Form Data)
+    # On utilise request.form, avec un fallback sur request.json au cas où
+    data = request.form if request.form else request.json
     
+    if not data:
+        print("⚠️ [TRAITEMENT REJETÉ] Requête vide reçue.")
+        return jsonify({"status": "error", "message": "Données manquantes"}), 400
+
     # Extraction du statut du paiement Mobile Money
     status = data.get('status')
     
     if status in ['success', 'SUCCESS']:
         print("💰 [NOTIFICATION MONETBIL] Dépôt Mobile Money validé avec succès !")
         
-        # Récupération dynamique des paramètres liés à l'achat envoyé par ton application
+        # Récupération des métadonnées de la transaction (passées via le bouton ou l'API)
         adresse_vendeur = data.get('vendeur_crypto_address') 
-        montant_eth = data.get('montant_crypto')  # Montant converti et dû en ETH/Crypto
-        commission_pct = int(data.get('commission_pourcentage', 4))  # 4% par défaut si non spécifié
+        montant_eth = data.get('montant_crypto')  # Montant à envoyer en crypto au contrat
+        
+        if not adresse_vendeur or not montant_eth:
+            print("⚠️ [DONNÉES INCOMPLÈTES] Adresse du vendeur ou montant crypto manquant dans le webhook.")
+            return jsonify({"status": "error", "message": "Métadonnées de transaction incomplètes"}), 400
         
         try:
-            print(f"🔄 [TRAITEMENT AUTOMATIQUE] Lancement du virement instantané vers le vendeur : {adresse_vendeur}")
+            print(f"🔄 [TRAITEMENT AUTOMATIQUE] Lancement du virement vers le vendeur : {adresse_vendeur}")
             
-            # Déclenchement autonome et instantané du contrat intelligent
-            tx_hash = declencher_paiement_blockchain(adresse_vendeur, montant_eth, commission_pct)
+            # Appel de la fonction de distribution automatique (sans le paramètre commission qui est géré on-chain)
+            tx_hash = declencher_paiement_blockchain(adresse_vendeur, montant_eth)
             
-            # Message de succès visible H24 dans ton tableau de bord Railway
-            print(f"📢 [NOTIF GLOIREHUB] Succès ! Vendeur payé en crypto. Tx Hash: {tx_hash}")
+            print(f"📢 [SUCCÈS] Vendeur payé via le Smart Contract. Tx Hash: {tx_hash}")
             
             return jsonify({
                 "status": "success", 
-                "message": "Notification reçue, contrat intelligent exécuté au millième de seconde !", 
+                "message": "Contrat intelligent exécuté avec succès !", 
                 "tx_hash": tx_hash
             }), 200
             
@@ -87,7 +92,7 @@ def webhook_mobile_money():
             }), 500
             
     else:
-        print(f"⚠️ [TRAITEMENT REJETÉ] Événement ignoré. Statut reçu non valide : {status}")
+        print(f"⚠️ [TRAITEMENT REJETÉ] Événement ignoré. Statut reçu : {status}")
         return jsonify({
             "status": "ignored", 
             "message": "Paiement non finalisé en Mobile Money, action annulée."
@@ -97,39 +102,37 @@ def webhook_mobile_money():
 # ==========================================
 # 4. ENGINE DE DISTRIBUTION CRYPTO AUTOMATIQUE
 # ==========================================
-def declencher_paiement_blockchain(vendeur, montant_eth, commission):
-    # Conversion de la valeur humaine ETH en sous-unité Blockchain (Wei)
+def declencher_paiement_blockchain(vendeur, montant_eth):
+    # Conversion du montant en Wei
     montant_wei = w3.to_wei(montant_eth, 'ether')
     
-    # Récupération sécurisée de l'index de transaction du portefeuille (Nonce)
+    # Récupération sécurisée du Nonce
     nonce = w3.eth.get_transaction_count(SERVER_ADDRESS)
     
-    # Construction structurelle de l'appel vers ton contrat VendstocPaiement
+    # Construction de l'appel (Uniquement l'adresse du vendeur passée au Smart Contract)
     tx = contract.functions.payerArticle(
-        w3.to_checksum_address(vendeur), 
-        commission
+        w3.to_checksum_address(vendeur)
     ).build_transaction({
         'from': SERVER_ADDRESS,
-        'value': montant_wei,             # Total de la crypto injectée dans la machine de partage
-        'gas': 120000,                    # Limite de gaz standard pour une exécution sécurisée
-        'gasPrice': w3.eth.gas_price,     # Ajustement automatique aux frais réseau en temps réel
+        'value': montant_wei,             # Le total des fonds envoyés qui seront séparés (Part Vendeur + Commission)
+        'gas': 95000,                     # Ajusté car l'exécution consomme moins de gaz sans le paramètre supplémentaire
+        'gasPrice': w3.eth.gas_price,     
         'nonce': nonce,
     })
     
-    # Signature électronique autonome via la clé privée de ton serveur
+    # Signature électronique via la clé privée du portefeuille serveur
     signed_tx = w3.eth.account.sign_transaction(tx, private_key=SERVER_PRIVATE_KEY)
     
-    # Expédition brute et instantanée sur le réseau
+    # Envoi de la transaction sur la blockchain
     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
     
     return w3.to_hex(tx_hash)
 
 
 # ==========================================
-# 5. DÉMARRAGE DU SERVEUR AUTONOME
+# 5. DÉMARRAGE DU SERVEUR
 # ==========================================
 if __name__ == '__main__':
-    # Railway attribue son propre canal d'écoute dynamiquement via la variable d'environnement PORT
     port = int(os.environ.get("PORT", 5000))
-    print(f"🚀 [STATUT LOG] Serveur GloireHub en mode écoute active H24 sur le port {port}...")
+    print(f"🚀 [STATUT LOG] Serveur en mode écoute active sur le port {port}...")
     app.run(host='0.0.0.0', port=port)
