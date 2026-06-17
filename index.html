@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portail de Paiement Multi-Réseaux</title>
+    <title>GloirePay — Portail de Paiement International</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <script type="text/javascript" src="https://fr.monetbil.com/widget/v2/monetbil.min.js"></script>
     <style>
-        :root { --bg-p: #121214; --bg-c: #1e1e24; --v-af: #9b5de5; --t-b: #ffffff; --t-g: #a0a0b0; --v-wa: #25D366; }
+        :root { --bg-p: #121214; --bg-c: #1e1e24; --v-af: #9b5de5; --t-b: #ffffff; --t-g: #a0a0b0; --v-wa: #25D366; --v-coin: #f39c12; }
         body { font-family: sans-serif; background-color: var(--bg-p); color: var(--t-b); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 480px; }
         .card { background-color: var(--bg-c); padding: 20px; border-radius: 15px; margin-top: 10px; }
@@ -20,26 +20,27 @@
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="btn-back">⬅️ Retour à la Vitrine</a>
+        <a href="index.html" class="btn-back">⬅️ Retour à GloireMedia</a>
         
-        <h2>Portail de Paiement & Transfert</h2>
+        <h2>Portail de Paiement GloirePay</h2>
         <div id="item-details" style="background:#121214; padding:10px; border-radius:8px; margin-bottom:15px; display:none;">
-            <p style="margin:5px 0; color:var(--v-wa);">🛒 Article : <span id="detail-nom" style="color:white; font-weight:bold;"></span></p>
-            <p style="margin:5px 0; color:var(--v-wa);">💵 Prix : <span id="detail-prix" style="color:white; font-weight:bold;"></span></p>
+            <p style="margin:5px 0; color:var(--v-wa);">🛒 Option / Contenu : <span id="detail-nom" style="color:white; font-weight:bold;"></span></p>
+            <p style="margin:5px 0; color:var(--v-wa);">💵 Montant : <span id="detail-prix" style="color:white; font-weight:bold;"></span></p>
         </div>
 
         <div class="card">
             <div class="form-group">
-                <label style="font-size:12px; color:var(--t-g);">Moyen de règlement / Envoi :</label>
+                <label style="font-size:12px; color:var(--t-g);">Mode de Règlement (Newpaiements) :</label>
                 <select id="transfert-canal" onchange="ajusterCanal()">
-                    <option value="momo">Mobile Money (Airtel / Orange / MTN via Monetbil)</option>
-                    <option value="crypto">Portefeuille Blockchain (Web3)</option>
+                    <option value="momo">Mobile Money (Orange / MTN / Airtel via Monetbil)</option>
+                    <option value="gloirecoin">Carburant Écosystème — GloireCoin (V10)</option>
+                    <option value="crypto">Autre Portefeuille Blockchain (Web3)</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label id="label-destinataire" style="font-size:12px; color:var(--t-g);">Numéro de téléphone / Portefeuille</label>
-                <input type="text" id="transfert-destinataire" placeholder="Ex: +23566000000 ou 0x...">
+                <label id="label-destinataire" style="font-size:12px; color:var(--t-g);">Numéro de téléphone / Adresse</label>
+                <input type="text" id="transfert-destinataire" placeholder="Ex: +237... ou +235...">
             </div>
 
             <div class="form-group">
@@ -48,7 +49,7 @@
             </div>
 
             <button class="btn-principal" onclick="traiterPaiement()">
-                <i class="fa-solid fa-paper-plane"></i> Confirmer l'opération
+                <i class="fa-solid fa-paper-plane"></i> Confirmer sur GloirePay
             </button>
             
             <div style="margin-top:20px; text-align:center;" id="monetbil-btn-container"></div>
@@ -56,15 +57,21 @@
     </div>
 
     <script>
-        const GLOIREHUB_API_URL = "https://api.gloirehub.com/v1"; 
-        const GLOIREHUB_API_KEY = "GH_SEC_TOKEN_PROD_XYZ123";
+        // Liaison avec votre serveur GloireHub hébergé sur Render
+        const GLOIREHUB_API_URL = "https://gloirepay-server.onrender.com"; 
 
         function ajusterCanal() {
             const canal = document.getElementById('transfert-canal').value;
             const lbl = document.getElementById('label-destinataire');
             const inp = document.getElementById('transfert-destinataire');
-            if (canal === 'crypto') { lbl.innerText = "Adresse Crypto (0x...)"; inp.placeholder = "0x..."; }
-            else { lbl.innerText = "Numéro du destinataire"; inp.placeholder = "Ex: +23566000000"; }
+            
+            if (canal === 'crypto' || canal === 'gloirecoin') { 
+                lbl.innerText = "Adresse de Portefeuille Crypto (0x...)"; 
+                inp.placeholder = "0x..."; 
+            } else { 
+                lbl.innerText = "Numéro de téléphone du payeur"; 
+                inp.placeholder = "Ex: +23566000000"; 
+            }
         }
 
         window.onload = function() {
@@ -90,22 +97,34 @@
 
             if(!dest || !montant) return alert("Veuillez remplir tous les champs.");
 
-            if (canal === 'crypto') {
-                if (typeof window.ethereum === 'undefined') return alert("Veuillez ouvrir dans un navigateur Web3 (MetaMask/Trust).");
+            if (canal === 'gloirecoin') {
+                alert(`⚡ Initialisation du paiement de ${montant} GloireCoin (V10) via GloirePay...`);
+                // Appel vers le webhook de votre serveur Render pour notifier l'action GloireCoin
+                try {
+                    const response = await fetch(`${GLOIREHUB_API_URL}/newpaiements/webhook`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount: montant, method: 'GLOIRECOIN', operator: 'GLOIRECOIN', status: 'SUCCESS' })
+                    });
+                    if(response.ok) alert("🎉 Paiement GloireCoin validé avec succès par GloireHub !");
+                } catch(e) { alert("Erreur de connexion avec GloireHub."); }
+
+            } else if (canal === 'crypto') {
+                if (typeof window.ethereum === 'undefined') return alert("Veuillez ouvrir l'application dans un navigateur Web3.");
                 try {
                     const provider = new ethers.BrowserProvider(window.ethereum);
                     const signer = await provider.getSigner();
-                    alert("Envoi des fonds sur la Blockchain...");
+                    alert("Signature de la transaction sur la Blockchain...");
                     const tx = await signer.sendTransaction({ to: dest, value: ethers.parseEther(montant) });
                     await tx.wait();
                     alert("🎉 Succès Blockchain !");
-                } catch(e) { alert("Échec du paiement crypto."); }
+                } catch(e) { alert("Échec du paiement crypto standard."); }
+
             } else {
-                alert("Lancement de la passerelle de paiement sécurisée Mobile Money...");
-                // Intégration Dynamique Instantanée du Widget de paiement officiel Monetbil
+                alert("Lancement de la passerelle sécurisée Mobile Money...");
                 Monetbil.widget({
                     version: 'v2.1',
-                    service: 's5dyzsP', // Votre ID de service Monetbil
+                    service: 's5dyzsP', 
                     amount: montant,
                     phonenumber: dest,
                     country: 'TD',
