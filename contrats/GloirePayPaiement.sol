@@ -87,6 +87,8 @@ contract GloirePayPaiement {
      */
     function changerAdmin(address payable _nouvelAdmin) public onlyAdmin {
         require(_nouvelAdmin != address(0), "Nouvelle adresse invalide");
+        require(_nouvelAdmin != admin, "L'adresse est deja celle de l'administrateur actuel"); // ✅ SÉCURITÉ : Évite le gaspillage de gaz
+
         emit AdminChanged(admin, _nouvelAdmin);
         admin = _nouvelAdmin;
     }
