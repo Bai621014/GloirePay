@@ -116,13 +116,18 @@
 </div>
 
 <script>
+    // Configuration dynamique de l'URL cible de l'API
+    const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
+        ? "" 
+        : "https://gloirepay-server.onrender.com"; // Remplace si nécessaire par l'URL Railway finale
+
     async function chargerHistorique() {
         const tbody = document.getElementById('log-rows');
         
         try {
             // Appel à la route de traçabilité du serveur
-            const response = await fetch('/api/admin/logs');
-            if (!response.ok) throw new Error('Impossible d'accéder aux logs');
+            const response = await fetch(`${API_BASE_URL}/api/admin/logs`);
+            if (!response.ok) throw new Error("Impossible d'accéder aux logs"); // ✅ CORRIGÉ : Guillemets doubles
             
             const texteBrut = await response.text();
             
@@ -184,4 +189,4 @@
 </script>
 
 </body>
-  </html>
+</html>
